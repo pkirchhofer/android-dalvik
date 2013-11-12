@@ -703,6 +703,14 @@ static void throwNoSuchMethodError(ClassObject* c, const char* name, const char*
     dvmThrowNoSuchMethodError(msg.c_str());
 }
 
+#ifdef WITH_HOUDINI
+namespace houdini {
+bool hookCheckMethod(void *fnPtr);
+void dvmHookPlatformInvoke(void* pEnv, void* clazz, int argInfo, int argc,
+    const int* argv, const char* shorty, void* func, void* pReturn);
+}
+#endif
+
 /*
  * Register a method that uses JNI calling conventions.
  */
@@ -761,6 +769,10 @@ static bool dvmRegisterJNIMethod(ClassObject* clazz, const char* methodName,
         /* this is allowed, but unusual */
         ALOGV("Note: %s.%s:%s was already registered", clazz->descriptor, methodName, signature);
     }
+
+#ifdef WITH_HOUDINI
+    method->needHoudini = houdini::hookCheckMethod(fnPtr);
+#endif
 
     method->fastJni = fastJni;
     dvmUseJNIBridge(method, fnPtr);
@@ -1153,6 +1165,13 @@ void dvmCallJNIMethod(const u4* args, JValue* pResult, const Method* method, Thr
 
     JNIEnv* env = self->jniEnv;
     COMPUTE_STACK_SUM(self);
+#ifdef WITH_HOUDINI
+    if (dvmNeedHoudiniMethod(method))
+        houdini::dvmHookPlatformInvoke(env, (ClassObject*)staticMethodClass,
+            method->jniArgInfo, method->insSize, (const int*)modArgs, method->shorty,
+            (void*)method->insns, pResult);
+    else
+#endif
     dvmPlatformInvoke(env,
             (ClassObject*) staticMethodClass,
             method->jniArgInfo, method->insSize, modArgs, method->shorty,

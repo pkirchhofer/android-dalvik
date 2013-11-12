@@ -1218,7 +1218,12 @@ void dvmThreadInterrupt(Thread* thread)
 #ifndef WITH_COPYING_GC
 u4 dvmIdentityHashCode(Object *obj)
 {
-    return (u4)obj;
+    /*
+     * The following assumes that objects are allocated at even boundaries, so
+     * the shift preserves uniqueness of hashCode() while guaranteeing a
+     * non-negative result (for the convenience of some applications,like MiTalk).
+     */
+    return (u4)(((u4)obj)>>1);
 }
 #else
 /*

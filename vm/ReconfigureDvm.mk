@@ -30,7 +30,14 @@ LOCAL_SHARED_LIBRARIES += \
 	libselinux \
 	libz
 
+ifeq ($(INTEL_HOUDINI),true)
+    LOCAL_CFLAGS += -DWITH_HOUDINI
+endif
 LOCAL_STATIC_LIBRARIES += libdex
+
+ifeq ($(INTEL_HOUDINI),true)
+    LOCAL_STATIC_LIBRARIES += libhoudini_hook
+endif
 
 LOCAL_C_INCLUDES += external/stlport/stlport bionic/ bionic/libstdc++/include
 LOCAL_SHARED_LIBRARIES += libstlport
