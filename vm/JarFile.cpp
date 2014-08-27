@@ -130,7 +130,8 @@ tryArchive:
          * Pre-created .odex absent or stale.  Look inside the jar for a
          * "classes.dex".
          */
-        if ((entry = dexZipFindEntry(&archive, kDexInJarName)) != NULL) {
+        entry = dexZipFindEntry(&archive, kDexInJarName);
+        if (entry != NULL) {
             bool newFile = false;
 
             /*
